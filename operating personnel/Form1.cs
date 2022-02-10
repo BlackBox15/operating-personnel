@@ -31,9 +31,11 @@ namespace operating_personnel
 
         private string ContentOfWork() 
         {
+            // Получение текущей даты.
             var date = DateTime.Today.ToShortDateString();
             var numberDay = Convert.ToString(DateTime.Today.ToShortDateString().Substring(0, 2));
 
+            // Вывод на лейбл.
             Content_of_work.Text = $"{ Convert.ToString(date)} \n {NumberDayOfMonthByRussian()} месяца \n \n" +
                                    $"{SearchWork(numberDay)} \n" +
                                    $"{SearchWork(NumberDayOfMonthByRussian())}" +
@@ -95,24 +97,32 @@ namespace operating_personnel
 
             return null;
         }
+
+        // Работа с файлом-эксель.
         public static string SearchWork(string searchTerm)
         {
+            // Путь к файлу.
             var file = new FileInfo(@"C:\Users\Vasil\source\repos\operating personnel\operating personnel\Excel file\ex.xlsx");
             List <string> arrCellWithNumber = new List<string>();
-            string c = "C";
+            string nameOfColumn = "C";
             
+
+            // Использование ExcelPackage в некоммерческих целях при использовании его в Отладчике.
+            // Для этого нужно указать LicenseContext.NonCommercial
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+            // Используем using-statement для корректной работы с неуправляемыми ресурсами.
             using (var package = new ExcelPackage(file))
             {
                 for (int i = 0; i <= 25; i++)
                 {
-                    string n = Convert.ToString(i+1);
-                    var collumnC = Convert.ToString(package.Workbook.Worksheets["Лист1"].Cells[c + n].Value);
+                    string numOfField = Convert.ToString(i+1);
+                    var collumnC = Convert.ToString(package.Workbook.Worksheets["Лист1"].Cells[nameOfColumn + numOfField].Value);
                     var contentOfCell = collumnC.Contains(searchTerm);
                     if (contentOfCell == true)
                     {
-                        var collumnB = Convert.ToString(package.Workbook.Worksheets["Лист1"].Cells["B"+n].Value);
-                        var collumnD = Convert.ToString(package.Workbook.Worksheets["Лист1"].Cells["D"+n].Value);
+                        var collumnB = Convert.ToString(package.Workbook.Worksheets["Лист1"].Cells["B"+ numOfField].Value);
+                        var collumnD = Convert.ToString(package.Workbook.Worksheets["Лист1"].Cells["D"+ numOfField].Value);
                         arrCellWithNumber.Add("- " + collumnB + "\n" + "   " + collumnD);
                     }
                 }
