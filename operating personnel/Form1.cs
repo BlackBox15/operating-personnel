@@ -20,8 +20,8 @@ namespace operating_personnel
         public Form1()
         {
             InitializeComponent();
-            ContentOfWork();
-        }
+			ContentOfWork();
+		}
 
         // Method
         private void label1_Click(object sender, EventArgs e)
@@ -29,18 +29,61 @@ namespace operating_personnel
             
         }
 
-        private string ContentOfWork() 
+        private void ContentOfWork() 
         {
             // Получение текущей даты.
             var date = DateTime.Today.ToShortDateString();
+            // Получение номера текущего дня.
             var numberDay = Convert.ToString(DateTime.Today.ToShortDateString().Substring(0, 2));
 
-            // Вывод на лейбл.
-            Content_of_work.Text = $"{ Convert.ToString(date)} \n {NumberDayOfMonthByRussian()} месяца \n \n" +
-                                   $"{SearchWork(numberDay)} \n" +
-                                   $"{SearchWork(NumberDayOfMonthByRussian())}" +
-                                   $"{SearchWork(AmOrPm())}";
-            return Content_of_work.Text; 
+			// Вывод текущей директории. Для отладки.
+			//Content_of_work.Text = ("path to the current dir is " + Directory.GetCurrentDirectory());
+
+			// Вывод на лейбл.
+			Content_of_work.Text = $"{ Convert.ToString(date)} \n {NumberDayOfMonthByRussian()} месяца \n \n" +
+								   $"{SearchWork(numberDay)} \n" +
+								   $"{SearchWork(NumberDayOfMonthByRussian())}" +
+								   $"{SearchWork(AmOrPm())}";
+			//return Content_of_work.Text; 
+		}
+
+
+        // Работа с файлом-эксель.
+        public static string SearchWork(string searchTerm)
+        {
+            // Путь к файлу.
+            var file = new FileInfo(@"..\..\Excel file\ex.xlsx");
+            List<string> arrCellWithNumber = new List<string>();
+            string nameOfColumn = "C";
+
+
+            // Использование ExcelPackage в некоммерческих целях при использовании его в Отладчике.
+            // Для этого нужно указать LicenseContext.NonCommercial
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+            // Используем using-statement для корректной работы с неуправляемыми ресурсами.
+            using (var package = new ExcelPackage(file))
+            {
+                for (int i = 0; i <= 25; i++)
+                {
+                    // Формирование номеров полей (1..25).
+                    string numOfField = Convert.ToString(i + 1);
+
+                    // Чтение поля из таблицы
+                    var collumnC = Convert.ToString(package.Workbook.Worksheets["Лист1"].Cells[nameOfColumn + numOfField].Value);
+
+                    // Проверка наличия в поле аргумента метода.
+                    var contentOfCell = collumnC.Contains(searchTerm);
+                    if (contentOfCell == true)
+                    {
+                        // Чтение из таблицы поля B, D.
+                        var collumnB = Convert.ToString(package.Workbook.Worksheets["Лист1"].Cells["B" + numOfField].Value);
+                        var collumnD = Convert.ToString(package.Workbook.Worksheets["Лист1"].Cells["D" + numOfField].Value);
+                        arrCellWithNumber.Add("- " + collumnB + "\n" + "   " + collumnD);
+                    }
+                }
+                return String.Join("\n", arrCellWithNumber);
+            }
         }
 
         private string TranslateDayOfWeekToRussian(string englishDay)
@@ -98,37 +141,6 @@ namespace operating_personnel
             return null;
         }
 
-        // Работа с файлом-эксель.
-        public static string SearchWork(string searchTerm)
-        {
-            // Путь к файлу.
-            var file = new FileInfo(@"C:\Users\Vasil\source\repos\operating personnel\operating personnel\Excel file\ex.xlsx");
-            List <string> arrCellWithNumber = new List<string>();
-            string nameOfColumn = "C";
-            
-
-            // Использование ExcelPackage в некоммерческих целях при использовании его в Отладчике.
-            // Для этого нужно указать LicenseContext.NonCommercial
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-
-            // Используем using-statement для корректной работы с неуправляемыми ресурсами.
-            using (var package = new ExcelPackage(file))
-            {
-                for (int i = 0; i <= 25; i++)
-                {
-                    string numOfField = Convert.ToString(i+1);
-                    var collumnC = Convert.ToString(package.Workbook.Worksheets["Лист1"].Cells[nameOfColumn + numOfField].Value);
-                    var contentOfCell = collumnC.Contains(searchTerm);
-                    if (contentOfCell == true)
-                    {
-                        var collumnB = Convert.ToString(package.Workbook.Worksheets["Лист1"].Cells["B"+ numOfField].Value);
-                        var collumnD = Convert.ToString(package.Workbook.Worksheets["Лист1"].Cells["D"+ numOfField].Value);
-                        arrCellWithNumber.Add("- " + collumnB + "\n" + "   " + collumnD);
-                    }
-                }
-                return String.Join("\n", arrCellWithNumber);
-            }
-        }
 
         public static string AmOrPm()
         {
